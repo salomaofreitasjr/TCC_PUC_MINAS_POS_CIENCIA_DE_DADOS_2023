@@ -2,6 +2,8 @@ import streamlit as st
 import datetime
 import pandas as pd
 import pickle # para salvamento e carregamento de modelos
+import joblib # para salvamento e carregamento de modelos
+import sklearn
 
 
 st.set_page_config(
@@ -97,8 +99,8 @@ with aba_previsao:
     #Data (trimestre e dia_semana)
     data = st.date_input(label = 'Data do Jogo:', 
 	value = datetime.date(2024,1,1), 
-	min_value = datetime.date(2003,1,1), 
-	max_value = datetime.date(2026,12,31), 
+	min_value = datetime.date(2024,1,1), 
+	max_value = datetime.date(2024,12,31), 
 	)
     # Atualizar no dicionário os campos trimestre e dia_semana
     trim = get_trimestre(data)
@@ -185,11 +187,18 @@ with aba_previsao:
         #Exibe para observarmos
         valores_x
 
-        # carrega o modelo e pede a prediçaõ do público, exibindo o resultado
-        modelo = pickle.load(open('modelo_treinado_final.sav', 'rb'))  #carregando o modelo salvo (desta forma vai carregar de novo toda vez que clicar no botão. Poderia carregar sío uma vez fora do laço, no início do código)
+        # carrega o modelo 
+        #modelo = pickle.load(open('modelo_treinado_final.sav', 'rb'))  #carregando o modelo salvo (desta forma vai carregar de novo toda vez que clicar no botão. Poderia carregar sío uma vez fora do laço, no início do código)
+        
+        # resgatando com joblib o modelo salvo com pickle
+        #modelo = joblib.load('modelo_treinado_final.sav')
+
+        # resgatando com joblib o modelo salvo com joblib
+        modelo = joblib.load('melhor_modelo.joblib')
+
+        # Faz a predição e exibe
         publico = modelo.predict(valores_x)
         st.write(publico[0])
-
     
 
     with aba_sobre:
