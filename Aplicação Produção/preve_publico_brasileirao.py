@@ -34,7 +34,7 @@ trimestres_possiveis = ['2º Trimestre', '3º Trimestre', '4º Trimestre']
 trimestres_dummies = ['3º Trimestre', '4º Trimestre'] #2º Trimestre ficou fora na dummização
 
 # Times no campeonato de 2024 e seus respectivos graus de investimento
-times_2024 = ['Athletico-PR', 'Atlético-GO', 'Atlético-MG', 'Botafogo', 'Corinthians', 'Criciúma EC', 'Cuiabá', 'Cruzeiro', 'EC Bahia', 'EC Vitória',
+times_2024 = ['Athletico-PR', 'Atlético-GO', 'Atlético-MG', 'Botafogo', 'Corinthians', 'Criciúma EC', 'Cuiabá-MT', 'Cruzeiro', 'EC Bahia', 'EC Vitória',
               'Flamengo', 'Fluminense', 'Fortaleza', 'Grêmio', 'Internacional', 'Juventude', 'Palmeiras', 'RB Bragantino', 'São Paulo', 'Vasco da Gama']
 
 grau_investimento_times_2024 = ['alto', 'muito_baixo', 'alto', 'medio', 'alto', 'muito_baixo', 'muito_baixo', 'baixo', 'baixo', 'muito_baixo',
@@ -84,13 +84,22 @@ def get_trimestre(data):
 def norm_escala(valor, min, max):
   return (valor - min) / (max - min)
 
+# Formatação de exibição de data
+def formata_data(data):
+    return data.strftime("%d/%m/%Y")
+
+# Formatação de exibição de número
+def formata_numero(num):
+    return '{:,.0f}'.format(num).replace(',','.')
+
+
 ###### INÍCIO DO APLICATIVO (INTERFACE) ##########
 
 st.markdown('## Aplicativo de Previsão Público em Jogos do Campeonato Brasileiro de Futebol')
 
-aba_previsao, aba_sobre = st.tabs(['Previsão de Público', 'Sobre'])
+aba_previsao_individual, aba_previsao_arquivo, aba_sobre = st.tabs(['Previsão de Público - Jogo Individual', 'Previsão de Público - Jogos em lote', 'Sobre'])
 
-with aba_previsao:
+with aba_previsao_individual:
     #st.image('puc_minas.jpg', width=30)
     st.markdown('### Forneça os dados do jogo para predição do público esperado')    
     
@@ -185,7 +194,7 @@ with aba_previsao:
         valores_x['grau_investimento_visitante'] = valores_x['grau_investimento_visitante'].map({'muito_baixo': 1, 'baixo': 2, 'medio': 3, 'alto': 4, 'muito_alto': 5}).apply(norm_escala, args = (1, 5))
         
         #Exibe para observarmos
-        valores_x
+        #valores_x
 
         # carrega o modelo 
         modelo = pickle.load(open('modelo_treinado_final.sav', 'rb'))  #carregando o modelo salvo (desta forma vai carregar de novo toda vez que clicar no botão. Poderia carregar sío uma vez fora do laço, no início do código)
@@ -198,10 +207,129 @@ with aba_previsao:
 
         # Faz a predição e exibe, formatando a saída com . separador de milhar e sem casas decimais
         publico = modelo.predict(valores_x)
-        st.markdown( '### Público estimado: {:,.0f} pessoas'.format(int(publico[0])).replace(',','.')  )
+        #st.markdown( '### Público estimado: {:,.0f} pessoas'.format(int(publico[0])).replace(',','.')  )
+        st.markdown( '### Público estimado: ' + formata_numero(publico[0]) )
+
+with aba_previsao_arquivo:
+    st.markdown('### Upload de arquivo com dados de jogos para predição do público esperado') 
+    #st.divider()
+
+    #st.header('Upload de Arquivos')
+ 
+    arquivo = st.file_uploader(label = 'Carregue seu arquivo', type=['csv','xlsx'], accept_multiple_files=False, 
+                                   key=None, help='Ajuda', on_change=None, args=None, kwargs=None, 
+                                   disabled=False, label_visibility="visible")
+
+    if not (arquivo is None): 
+        #st.write(arquivo.type) 
+    
+        # Lê em um DF
+        if arquivo.type == 'text/csv':
+            dados = pd.read_csv(arquivo, sep =';', encoding='latin')             
+        else: # excel
+            dados = pd.read_excel(arquivo)
+
+        dados['data'] = pd.to_datetime(dados['data'], dayfirst=True) # para garantir o reconhecimento do tipo dada corretamente
+        #st.write(dados.head(10))
+
+        ##############################################
+        dicionario = {}
+        for item in x_listas:
+            for valor in x_listas[item]:
+                dicionario[f'{item}_{valor}'] = [0] * len(dados)  # os itens são criados todos zerados
+        
+        #Dados numéricos
+        x_numericos = {'rodada': list(dados['rodada']), 
+                       'points_mand_last_5': list(dados['points_mand_last_5']), 
+                       'points_visit_last_5': list(dados['points_visit_last_5']), 
+                       'colocacao_mandante_antes': list(dados['colocacao_mandante_antes']), 
+                       'colocacao_visitante_antes': list(dados['colocacao_visitante_antes'])}
+
+        #Dados encoded (categóricos com ordenação)
+        x_encoded = {'grau_investimento_mandante': list(dados['time_mandante']),  # aqui os valores são temporários, depois colocaremos o valore correto
+                     'grau_investimento_visitante': list(dados['time_visitante'])}
         
 
-    with aba_sobre:
+        # Ajuste de dados transformados
+        for i in range(len(dados)):
+            # Atualizar no dicionário os campos trimestre e dia_semana
+            trim = get_trimestre(dados.loc[i, 'data'])
+            dia_sem = get_weekday(dados.loc[i, 'data'])
+            if trim not in ['1º Trimestre', '2º Trimestre']: # 1 não tem no modelo treinado, e 2 foi retirado na dummização
+                dicionario[f'trimestre_{trim}'][i] = 1 # coluna dummie
+            if dia_sem not in ['Domingo']: # Domingo retirado na dummização 
+                dicionario[f'dia_semana_{dia_sem}'][i] = 1 # coluna dummie
+        
+            # time_mandante (e grau_investimento_mandante)
+            mandante = dados.loc[i, 'time_mandante']
+            grau_mand = grau_investimento_times_2024[times_2024.index(mandante)]
+            if mandante not in ['América-MG']: #'América-MG' saiu na dummização
+                dicionario[f'time_mandante_{mandante}'][i] = 1 # coluna dummie
+                x_encoded['grau_investimento_mandante'][i] = grau_mand # coluna encoded
+            
+            # time_visitante (e grau_investimento_visitante)
+            visitante = dados.loc[i, 'time_visitante']
+            grau_visit = grau_investimento_times_2024[times_2024.index(visitante)]
+            if visitante not in ['América-MG']: #'América-MG' saiu na dummização
+                dicionario[f'time_visitante_{visitante}'][i] = 1 # coluna dummie
+                x_encoded['grau_investimento_visitante'][i] = grau_visit # coluna encoded
+
+        
+        #juntamos tudo em dicionario para passar ao nosso modelo
+        dicionario.update(x_numericos) #este método update "junta" dois dicionários (acrescenta o x_numericos a dicionario)
+        dicionario.update(x_encoded) #acrescenta x_encoded à dicionario
+
+        #criando um DF a partir do dicionario, para poder passar ao nosso modelo (como é apenas uma linha, passamos o indice 0 - poderíamos passar um range com a quantidade de linhas)
+        valores_x = pd.DataFrame(dicionario) #, index=[0]) 
+       
+        #leitura do arquivo que salvamos após os ajustes finais da base, só para pegar as colunas
+        dados_prep = pd.read_csv(r'datasets\brasileirao_serie_a_preparada_final_op2.csv', sep =';', encoding='utf-8') 
+        colunas = list(dados_prep.drop('publico', axis = 1).columns) # para retirar a coluna publico(que é o y. Mantemos só as colunas de parâmetros X)
+        valores_x = valores_x[colunas] #fazendo isso, reordenamos as colunas do DF na mesma ordem do base que o modelo foi treinado (List colunas obtida na linha anterior anterior no código)
+
+
+        
+        # Aplicando as normalizações e codificações no DF
+        valores_x['rodada'] = valores_x['rodada'].apply(norm_escala, args = (1, 38) )
+        valores_x['points_mand_last_5'] = valores_x['points_mand_last_5'].apply(norm_escala, args = (0, 15) )
+        valores_x['points_visit_last_5'] = valores_x['points_visit_last_5'].apply(norm_escala, args = (0, 15) )
+        valores_x['colocacao_mandante_antes'] = valores_x['colocacao_mandante_antes'].apply(norm_escala, args = (1, 20) )
+        valores_x['colocacao_visitante_antes'] = valores_x['colocacao_visitante_antes'].apply(norm_escala, args = (1, 20) )
+        valores_x['grau_investimento_mandante'] = valores_x['grau_investimento_mandante'].map({'muito_baixo': 1, 'baixo': 2, 'medio': 3, 'alto': 4, 'muito_alto': 5}).apply(norm_escala, args = (1, 5))
+        valores_x['grau_investimento_visitante'] = valores_x['grau_investimento_visitante'].map({'muito_baixo': 1, 'baixo': 2, 'medio': 3, 'alto': 4, 'muito_alto': 5}).apply(norm_escala, args = (1, 5))
+        ###############################################
+
+        
+
+        # carrega o modelo 
+        modelo = pickle.load(open('modelo_treinado_final.sav', 'rb'))  
+                
+        # Faz a predição e inclui como uma coluna do DF referente ao arquivo de entrada, formatando a saída com . separador de milhar e sem casas decimais
+        #publico = modelo.predict(valores_x)
+        dados['PÚBLICO ESTIMADO'] = modelo.predict(valores_x)
+               
+
+        #st.divider()
+        #st.write(valores_x.head(10)) # DF com os valores preparados para aplicação no modelo de ML
+
+        st.markdown( '### Veja abaixo a quantidade de público prevista para cada jogo no arquivo indicado'  )
+
+        #### Ajuste de algumas colunas para visualização
+        #st.markdown( '### Público estimado: {:,.0f} pessoas'.format(int(publico[0])).replace(',','.')  )
+        dados['data'] = dados['data'].apply(formata_data)
+        dados['publico'] = dados['publico'].apply(formata_numero)
+        dados['PÚBLICO ESTIMADO'] = dados['PÚBLICO ESTIMADO'].apply(formata_numero)
+
+        
+        dados.style.hide(axis="index")
+
+        st.write(dados.round(0))
+
+        
+        
+
+
+with aba_sobre:
         col1, col2 = st.columns([0.07, 0.7]) # cria duas colunas informando a proporção da largura
         col1.image('puc_minas.jpg', width=130)
         col2.subheader('Pós Graduação em Ciência de Dados e Big Data')
