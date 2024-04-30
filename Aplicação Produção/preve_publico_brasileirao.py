@@ -2,9 +2,8 @@ import streamlit as st
 import datetime
 import pandas as pd
 import pickle # para salvamento e carregamento de modelos
-import joblib # para salvamento e carregamento de modelos
-import sklearn
-#from sklearn.ensemble import _gb_losses
+#import joblib # para salvamento e carregamento de modelos
+#from sklearn.ensemble import GradientBoostingRegressor
 
 
 st.set_page_config(
@@ -161,7 +160,7 @@ with aba_previsao:
 			  step = 1)    
     x_numericos['points_visit_last_5'] = pontos_visit # atualiza o valor no dicionário
 
-    botao = st.button('Prever Valor do Imóvel')
+    botao = st.button('Prever público para o jogo')
 
     if botao: #se botão foi clicado
         #juntamos tudo em dicionario para passar ao nosso modelo
@@ -197,10 +196,10 @@ with aba_previsao:
         # resgatando com joblib o modelo salvo com joblib
         #modelo = joblib.load('melhor_modelo.joblib')
 
-        # Faz a predição e exibe
+        # Faz a predição e exibe, formatando a saída com . separador de milhar e sem casas decimais
         publico = modelo.predict(valores_x)
-        st.write(publico[0])
-    
+        st.markdown( '### Público estimado: {:,.0f} pessoas'.format(int(publico[0])).replace(',','.')  )
+        
 
     with aba_sobre:
         col1, col2 = st.columns([0.07, 0.7]) # cria duas colunas informando a proporção da largura
