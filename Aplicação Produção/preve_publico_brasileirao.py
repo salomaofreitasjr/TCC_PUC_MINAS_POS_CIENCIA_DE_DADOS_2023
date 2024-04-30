@@ -4,6 +4,7 @@ import pandas as pd
 import pickle # para salvamento e carregamento de modelos
 import joblib # para salvamento e carregamento de modelos
 import sklearn
+#from sklearn.ensemble import _gb_losses
 
 
 st.set_page_config(
@@ -188,13 +189,13 @@ with aba_previsao:
         valores_x
 
         # carrega o modelo 
-        #modelo = pickle.load(open('modelo_treinado_final.sav', 'rb'))  #carregando o modelo salvo (desta forma vai carregar de novo toda vez que clicar no botão. Poderia carregar sío uma vez fora do laço, no início do código)
+        modelo = pickle.load(open('modelo_treinado_final.sav', 'rb'))  #carregando o modelo salvo (desta forma vai carregar de novo toda vez que clicar no botão. Poderia carregar sío uma vez fora do laço, no início do código)
         
         # resgatando com joblib o modelo salvo com pickle
         #modelo = joblib.load('modelo_treinado_final.sav')
 
         # resgatando com joblib o modelo salvo com joblib
-        modelo = joblib.load('melhor_modelo.joblib')
+        #modelo = joblib.load('melhor_modelo.joblib')
 
         # Faz a predição e exibe
         publico = modelo.predict(valores_x)
