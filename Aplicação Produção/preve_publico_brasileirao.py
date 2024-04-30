@@ -320,10 +320,9 @@ with aba_previsao_arquivo:
         dados['publico'] = dados['publico'].apply(formata_numero)
         dados['PÚBLICO ESTIMADO'] = dados['PÚBLICO ESTIMADO'].apply(formata_numero)
 
-        
-        dados.style.hide(axis="index")
-
-        st.write(dados.round(0))
+        #dados.index = [''] * len(dados)
+        dados.index = dados.index + 1  # para os índices mostrarem o numero da linha
+        st.write(dados)
 
         
         
