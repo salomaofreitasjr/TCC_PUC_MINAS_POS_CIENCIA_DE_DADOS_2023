@@ -18,7 +18,7 @@ st.set_page_config(
 
 # 2º Melhor Modelo - vamos usar para publicar a aplicação para demonstração, já que o tamanho do arquivo ficou pequeno (-2MB)
 arquivo_modelo = r'modelos/modelo_treinado_GradientBoostingRegressor().sav' # Colocamos a barra ao contrário para func no Windows e Linux (deploy)
-logo_puc_minas = r'figuras/puc_minas.jpg'
+logo_puc_minas = f'figuras\puc_minas.jpg'
 arquivo_dataset = r'datasets/brasileirao_serie_a_preparada_final_op2.csv'
 
 # Todos os times da base, exceto 'América-MG', pois este foi dexiado de fora na dummização
