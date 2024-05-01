@@ -11,15 +11,20 @@ st.set_page_config(
 )
 
 ##### PREPARAÇÃO ###########
+# Para publicação, precisamos colocar os paths assim, senão não funciona 
+logo_puc_minas = r'Aplicacao_Producao/figuras/puc_minas.jpg'
+arquivo_dataset = r'Aplicacao_Producao/datasets/brasileirao_serie_a_preparada_final_op2.csv' 
+
+#Para rodar na máquina local, colocamos assim, senão não funciona
+#logo_puc_minas = r'figuras/puc_minas.jpg'
+#arquivo_dataset = r'datasets/brasileirao_serie_a_preparada_final_op2.csv' 
 
 # 1º Melhor Modelo, mas arquivo do modelo ficou muito grande (+300MB) para comitar no GitHub
 # (o que é necessário para publicar a aplicação no servidor do streamlita ou do GitHub )
-#arquivo_modelo = 'modelos\modelo_treinado_final.sav'
+#arquivo_modelo = r'modelos\modelo_treinado_final.sav'
 
 # 2º Melhor Modelo - vamos usar para publicar a aplicação para demonstração, já que o tamanho do arquivo ficou pequeno (-2MB)
 arquivo_modelo = r'Aplicacao_Producao/modelos/modelo_treinado_GradientBoostingRegressor().sav' # Colocamos a barra ao contrário para func no Windows e Linux (deploy)
-logo_puc_minas = r'Aplicacao_Producao/figuras/puc_minas.jpg'
-arquivo_dataset = r'Aplicacao_Producao/datasets/brasileirao_serie_a_preparada_final_op2.csv' 
 
 # Todos os times da base, exceto 'América-MG', pois este foi dexiado de fora na dummização
 todos_times_dummies = ['América-RN', 'Athletico-PR', 'Atlético-GO', 'Atlético-MG', 'Avaí FC', 'Barueri', 'Botafogo', 'CSA', 'Ceará SC', 'Chapecoense',
