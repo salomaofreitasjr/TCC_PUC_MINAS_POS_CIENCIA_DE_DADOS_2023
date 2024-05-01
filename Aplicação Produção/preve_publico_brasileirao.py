@@ -14,6 +14,14 @@ st.set_page_config(
 
 ##### PREPARAÇÃO ###########
 
+# 1º Melhor Modelo, mas arquivo do modelo ficou muito grande (+300MB) para comitar no GitHub
+# (o que é necessário para publicar a aplicação no servidor do streamlita ou do GitHub )
+arquivo_modelo = 'modelo_treinado_final.sav'
+
+# 2º Melhor Modelo - vamos usar para publicar a aplicação para demonstração, já que o tamanho do arquivo ficou pequeno (-2MB)
+#arquivo_modelo = 'modelo_treinado_GradientBoostingRegressor().sav'
+
+
 # Todos os times da base, exceto 'América-MG', pois este foi dexiado de fora na dummização
 todos_times_dummies = ['América-RN', 'Athletico-PR', 'Atlético-GO', 'Atlético-MG', 'Avaí FC', 'Barueri', 'Botafogo', 'CSA', 'Ceará SC', 'Chapecoense',
                'Corinthians', 'Coritiba FC', 'Criciúma EC', 'Cruzeiro', 'Cuiabá-MT', 'EC Bahia', 'EC Vitória', 'Figueirense FC', 'Flamengo',
@@ -96,6 +104,7 @@ def formata_numero(num):
 ###### INÍCIO DO APLICATIVO (INTERFACE) ##########
 
 #st.title(':blue[Aplicativo de Previsão Público em Jogos do Campeonato Brasileiro de Futebol]')
+
 col1, col2 = st.columns([0.5,9.5])
 col1.image('puc_minas.jpg', width=80)
 col2.header('Aplicativo de Previsão Público em Jogos do Campeonato Brasileiro de Futebol ⚽')
@@ -107,76 +116,95 @@ aba_previsao_individual, aba_previsao_arquivo, aba_sobre = st.tabs(['Previsão d
 with aba_previsao_individual:
     st.markdown('### Forneça os dados do jogo para predição do público esperado')    
     
-    # Recebe a entrada de dados de cada campo
-    # E já atualiza o valor no dicionário
 
-    col1_1, col1_2 = st.columns([2, 8], gap='large') # cria duas colunas informando a proporção da largura
-    with col1_1:
-        #Data (trimestre e dia_semana)
-        data = st.date_input(label = '**Data do Jogo:**', value = datetime.date(2024,1,13), min_value = datetime.date(2024,1,1), 
-                            max_value = datetime.date(2024,12,31), format="DD/MM/YYYY"	)
-        # Atualizar no dicionário os campos trimestre e dia_semana
-        trim = get_trimestre(data)
-        dia_sem = get_weekday(data)
-        if trim not in ['1º Trimestre', '2º Trimestre']: # 1 não tem no modelo treinado, e 2 foi retirado na dummização
-            dicionario[f'trimestre_{trim}'] = 1 # coluna dummie
-        if dia_sem not in ['Domingo']: # Domingo retirado na dummização 
-            dicionario[f'dia_semana_{dia_sem}'] = 1 # coluna dummie
+    with st.container(border=True):  # linha 1
+        st.markdown('###### Dados do Jogo')    
+
+        # Recebe a entrada de dados de cada campo
+        # E já atualiza o valor no dicionário
+        col1_1, col1_2 = st.columns([2, 8], gap='small') # cria duas colunas informando a proporção da largura
+        with col1_1:
+            with st.container(border=True, height=115):
+                #Data (trimestre e dia_semana)
+                data = st.date_input(label = '**Data do Jogo:**', value = datetime.date(2024,1,13), min_value = datetime.date(2024,1,1), 
+                                    max_value = datetime.date(2024,12,31), format="DD/MM/YYYY"	)
+                # Atualizar no dicionário os campos trimestre e dia_semana
+                trim = get_trimestre(data)
+                dia_sem = get_weekday(data)
+                if trim not in ['1º Trimestre', '2º Trimestre']: # 1 não tem no modelo treinado, e 2 foi retirado na dummização
+                    dicionario[f'trimestre_{trim}'] = 1 # coluna dummie
+                if dia_sem not in ['Domingo']: # Domingo retirado na dummização 
+                    dicionario[f'dia_semana_{dia_sem}'] = 1 # coluna dummie
+            
+        with col1_2:
+            with st.container(border=True, height=115):
+                # rodada
+                rodada = st.slider(label = '**Rodada do Campeonato:**',
+                        min_value = 1,
+                        max_value = 38,
+                        step = 1)    
+                x_numericos['rodada'] = rodada # atualiza o valor no dicionário
         
-    with col1_2:
-        # rodada
-        rodada = st.slider(label = '**Rodada:**',
-                min_value = 1,
-                max_value = 38,
-                step = 1)    
-        x_numericos['rodada'] = rodada # atualiza o valor no dicionário
-        
+    with st.container(border=True): # linha 2
+        st.markdown('###### Dados do Mandante')
+        col2_1, col2_2, col2_3 = st.columns([2, 4.3, 3.7], gap='small') # cria duas colunas informando a proporção da largura
+        with col2_1:
+            with st.container(border=True, height=115):
+                # time_mandante (e grau_investimento_mandante)
+                mandante = st.selectbox('**Time Mandante:**', times_2024)
+                grau_mand = grau_investimento_times_2024[times_2024.index(mandante)]
+                if mandante not in ['América-MG']: #'América-MG' saiu na dummização
+                    dicionario[f'time_mandante_{mandante}'] = 1 # coluna dummie
+                x_encoded['grau_investimento_mandante'] = grau_mand # coluna encoded
 
-    col2_1, col2_2, col2_3 = st.columns([2, 4, 4], gap='large') # cria duas colunas informando a proporção da largura
-    with col2_1:
-        # time_mandante (e grau_investimento_mandante)
-        mandante = st.selectbox('**Time Mandante:**', times_2024)
-        grau_mand = grau_investimento_times_2024[times_2024.index(mandante)]
-        if mandante not in ['América-MG']: #'América-MG' saiu na dummização
-            dicionario[f'time_mandante_{mandante}'] = 1 # coluna dummie
-        x_encoded['grau_investimento_mandante'] = grau_mand # coluna encoded
-
-        # time_visitante (e grau_investimento_visitante)
-        #times_2024.remove(mandante)
-        visitante = st.selectbox('**Time Visitante:**', times_2024)
-        grau_visit = grau_investimento_times_2024[times_2024.index(visitante)]
-        if visitante not in ['América-MG']: #'América-MG' saiu na dummização
-            dicionario[f'time_visitante_{visitante}'] = 1 # coluna dummie
-        x_encoded['grau_investimento_visitante'] = grau_visit # coluna encoded
-    with col2_2:
+        with col2_2:
+            with st.container(border=True, height=115):
                 # colocacao_mandante_antes
-        coloc_mand = st.slider(label = '**Colocação do mandante na tabela:**',
-                min_value = 1,
-                max_value = 20,
-                step = 1)    
-        x_numericos['colocacao_mandante_antes'] = coloc_mand # atualiza o valor no dicionário
+                coloc_mand = st.slider(label = '**Colocação do mandante na tabela:**',
+                        min_value = 1,
+                        max_value = 20,
+                        step = 1)    
+                x_numericos['colocacao_mandante_antes'] = coloc_mand # atualiza o valor no dicionário
 
-        # colocacao_visitante_antes
-        coloc_visit = st.slider(label = '**Colocação do visitante na tabela:**',
-                min_value = 1,
-                max_value = 20,
-                step = 1)    
-        x_numericos['colocacao_visitante_antes'] = coloc_visit # atualiza o valor no dicionário
+        with col2_3:
+            with st.container(border=True, height=115):
+                # points_mand_last_5
+                pontos_mand = st.slider(label = '**Pontos conquistados pelo mandante nas últimas 5 rodadas:**',
+                        min_value = 0,
+                        max_value = 15,
+                        step = 1)    
+                x_numericos['points_mand_last_5'] = pontos_mand # atualiza o valor no dicionário
 
-    with col2_3:
-        # points_mand_last_5
-        pontos_mand = st.slider(label = '**Pontos conquistados pelo mandante nas últimas 5 rodadas:**',
-                min_value = 0,
-                max_value = 15,
-                step = 1)    
-        x_numericos['points_mand_last_5'] = pontos_mand # atualiza o valor no dicionário
+    with st.container(border=True): # linha 3
+        st.markdown('###### Dados do Visitante')
+        col3_1, col3_2, col3_3 = st.columns([2, 4.3, 3.7], gap='small') # cria duas colunas informando a proporção da largura
+        with col3_1:
+            with st.container(border=True, height=115):
+                # time_visitante (e grau_investimento_visitante)
+                #times_2024.remove(mandante)
+                visitante = st.selectbox('**Time Visitante:**', times_2024)
+                grau_visit = grau_investimento_times_2024[times_2024.index(visitante)]
+                if visitante not in ['América-MG']: #'América-MG' saiu na dummização
+                    dicionario[f'time_visitante_{visitante}'] = 1 # coluna dummie
+                x_encoded['grau_investimento_visitante'] = grau_visit # coluna encoded
+        with col3_2:
+            with st.container(border=True, height=115):
+                # colocacao_visitante_antes
+                coloc_visit = st.slider(label = '**Colocação do visitante na tabela:**',
+                        min_value = 1,
+                        max_value = 20,
+                        step = 1)    
+                x_numericos['colocacao_visitante_antes'] = coloc_visit # atualiza o valor no dicionário
 
-        # points_visit_last_5
-        pontos_visit = st.slider(label = '**Pontos conquistados pelo visitante nas últimas 5 rodadas:**',
-                min_value = 0,
-                max_value = 15,
-                step = 1)    
-        x_numericos['points_visit_last_5'] = pontos_visit # atualiza o valor no dicionário
+        with col3_3:
+            with st.container(border=True, height=115):
+                # points_visit_last_5
+                pontos_visit = st.slider(label = '**Pontos conquistados pelo visitante nas últimas 5 rodadas:**',
+                        min_value = 0,
+                        max_value = 15,
+                        step = 1)    
+                x_numericos['points_visit_last_5'] = pontos_visit # atualiza o valor no dicionário
+
 
     botao = st.button('**Prever público para o jogo**')
 
@@ -206,7 +234,7 @@ with aba_previsao_individual:
         #valores_x
 
         # carrega o modelo 
-        modelo = pickle.load(open('modelo_treinado_final.sav', 'rb'))  #carregando o modelo salvo (desta forma vai carregar de novo toda vez que clicar no botão. Poderia carregar sío uma vez fora do laço, no início do código)
+        modelo = pickle.load(open(arquivo_modelo, 'rb'))  #carregando o modelo salvo (desta forma vai carregar de novo toda vez que clicar no botão. Poderia carregar sío uma vez fora do laço, no início do código)
         
         # resgatando com joblib o modelo salvo com pickle
         #modelo = joblib.load('modelo_treinado_final.sav')
@@ -220,8 +248,8 @@ with aba_previsao_individual:
 
 with aba_previsao_arquivo:
     st.markdown('### Upload de arquivo com dados de jogos para predição do público esperado') 
-    
-    arquivo = st.file_uploader(label = '**Carregue seu arquivo**', type=['csv','xlsx'], accept_multiple_files=False, 
+    with st.container(border=True): # linha 3
+        arquivo = st.file_uploader(label = '**Carregue seu arquivo**', type=['csv','xlsx'], accept_multiple_files=False, 
                                    key=None, help='Ajuda', on_change=None, args=None, kwargs=None, 
                                    disabled=False, label_visibility="visible")
 
@@ -306,7 +334,7 @@ with aba_previsao_arquivo:
         
 
         # carrega o modelo 
-        modelo = pickle.load(open('modelo_treinado_final.sav', 'rb'))  
+        modelo = pickle.load(open(arquivo_modelo, 'rb'))  
                 
         # Faz a predição e inclui como uma coluna do DF referente ao arquivo de entrada, formatando a saída com . separador de milhar e sem casas decimais
         #publico = modelo.predict(valores_x)
@@ -316,11 +344,17 @@ with aba_previsao_arquivo:
         #st.divider()
         #st.write(valores_x.head(10)) # DF com os valores preparados para aplicação no modelo de ML
 
+        st.write('')
         st.markdown( '### Veja abaixo a quantidade de público prevista para cada jogo no arquivo indicado'  )
-
+        
         #### Ajuste de algumas colunas para visualização
         #st.markdown( '### Público estimado: {:,.0f} pessoas'.format(int(publico[0])).replace(',','.')  )
         dados['data'] = dados['data'].apply(formata_data)
+        dados['points_mand_last_5'] = dados['points_mand_last_5'].apply(int)
+        dados['points_visit_last_5'] = dados['points_visit_last_5'].apply(int)
+        dados['colocacao_mandante_antes'] = dados['colocacao_mandante_antes'].apply(int)
+        dados['colocacao_visitante_antes'] = dados['colocacao_visitante_antes'].apply(int)
+        
         dados['publico'] = dados['publico'].apply(formata_numero)
         dados['PÚBLICO ESTIMADO'] = dados['PÚBLICO ESTIMADO'].apply(formata_numero)
 
@@ -331,9 +365,18 @@ with aba_previsao_arquivo:
                               'colocacao_visitante_antes': 'Classificação do Visitante na Tabela',
                               'publico': 'Público Real' })
 
+
         #dados.index = [''] * len(dados)
         dados.index = dados.index + 1  # para os índices mostrarem o numero da linha
-        st.write(dados)
+        
+        # funçao para colorir as linhas do DF
+        # row.name é o indice da linha
+        def color_row_coding(row):
+            return ['background-color:lightgray'] * len(row) if row.name % 2 == 0 else ['background-color:white'] * len(row)
+                
+        with st.container(border=True): # linha 3
+            st.dataframe(dados.style.apply(color_row_coding, axis=1))#, hide_index=True)
+            
 
         
         
@@ -344,12 +387,31 @@ with aba_sobre:
         col2.subheader('Trabalho de Conclusão de Curso')    
         st.write('')
         st.write('')
-        st.markdown('### UM MODELO DE APRENDIZADO DE MÁQUINA SUPERVISIONADO PARA PREVISÃO DE QUANTIDADE DE PÚBLICO NOS JOGOS DO CAMPEONATO BRASILEIRO DE FUTEBOL')
-        st.markdown('### Etapa 03: Implantação do Modelo em Produção')
+        
+        # Artifícopara centralizar o markdown
+        col3, col4 =  st.columns([0.01, 0.99])
+        col3.write('')
+        col4.markdown('#### **UM MODELO DE APRENDIZADO DE MÁQUINA SUPERVISIONADO PARA PREVISÃO DE QUANTIDADE DE PÚBLICO NOS JOGOS DO CAMPEONATO BRASILEIRO DE FUTEBOL**')
+        
+        col5, col6 =  st.columns([0.3, 0.7])
+        col5.write('')        
+        col6.markdown('#### Etapa 03: Implantação do Modelo em Produção')
+        
+        col7, col8 =  st.columns([0.32, 0.68])
+        col7.write('')                
+        col8.markdown('#### Salomão Fernandes de Freitas Júnior')
+
+        col7, col8 =  st.columns([0.34, 0.66])
+        col8.markdown('#### salomaofreitasjr@gmail.com') # colocar e-mail clicável
+        
         st.write('')
         st.write('')
-        st.markdown('#### Salomão Freitas Jr.') # colocar e-mail clicável
-        st.write('')
-        st.markdown('#### Repositório do Projeto:') #colocar link
-        st.markdown('#### MAIO/2024')
+
+        col9, col10 =  st.columns([0.3, 0.7])
+        col9.write('')
+        col10.markdown('#### Repositório do Projeto: XXXXXXXXXXXXXXXXXXXXXXXXXX') #colocar link
+
+        col11, col12 =  st.columns([0.4, 0.6])
+        col11.write('')
+        col12.markdown('#### MAIO/2024')
     
