@@ -88,7 +88,7 @@ def formata_numero(num):
 #st.title(':blue[Aplicativo de Previsão Público em Jogos do Campeonato Brasileiro de Futebol]')
 
 col1, col2 = st.columns([0.5,9.5])
-col1.image(logo_puc_minas, width=80)
+#col1.image(logo_puc_minas, width=80)
 col2.header('Aplicativo de Previsão Público em Jogos do Campeonato Brasileiro de Futebol ⚽')
 
 aba_previsao_individual, aba_previsao_arquivo, aba_sobre = st.tabs(['Previsão de Público - Jogo Individual',
@@ -376,7 +376,7 @@ with aba_previsao_arquivo:
 
 with aba_sobre:
         col1, col2 = st.columns([0.13, 0.87]) # cria duas colunas informando a proporção da largura
-        col1.image(logo_puc_minas, width=200)
+        #col1.image(logo_puc_minas, width=200)
         col2.markdown('#### PÓS GRADUAÇÃO EM CIÊNCIA DE DADOS E BIG DATA')
         col2.markdown('#### TRABALHO DE CONCLUSÃO DE CURSO')    
         col2.markdown('#### MAIO/2024')
