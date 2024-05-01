@@ -14,11 +14,12 @@ st.set_page_config(
 
 # 1º Melhor Modelo, mas arquivo do modelo ficou muito grande (+300MB) para comitar no GitHub
 # (o que é necessário para publicar a aplicação no servidor do streamlita ou do GitHub )
-#arquivo_modelo = 'modelos/modelo_treinado_final.sav'
+#arquivo_modelo = 'modelos\modelo_treinado_final.sav'
 
 # 2º Melhor Modelo - vamos usar para publicar a aplicação para demonstração, já que o tamanho do arquivo ficou pequeno (-2MB)
-arquivo_modelo = 'modelos/modelo_treinado_GradientBoostingRegressor().sav'
-
+arquivo_modelo = r'modelos\modelo_treinado_GradientBoostingRegressor().sav' # Colocamos a barra ao contrário para func no Windows e Linux (deploy)
+logo_puc_minas = r'figuras\puc_minas.jpg'
+arquivo_dataset = r'datasets\brasileirao_serie_a_preparada_final_op2.csv'
 
 # Todos os times da base, exceto 'América-MG', pois este foi dexiado de fora na dummização
 todos_times_dummies = ['América-RN', 'Athletico-PR', 'Atlético-GO', 'Atlético-MG', 'Avaí FC', 'Barueri', 'Botafogo', 'CSA', 'Ceará SC', 'Chapecoense',
@@ -87,7 +88,7 @@ def formata_numero(num):
 #st.title(':blue[Aplicativo de Previsão Público em Jogos do Campeonato Brasileiro de Futebol]')
 
 col1, col2 = st.columns([0.5,9.5])
-col1.image('figuras/puc_minas.jpg', width=80)
+col1.image(logo_puc_minas, width=80)
 col2.header('Aplicativo de Previsão Público em Jogos do Campeonato Brasileiro de Futebol ⚽')
 
 aba_previsao_individual, aba_previsao_arquivo, aba_sobre = st.tabs(['Previsão de Público - Jogo Individual',
@@ -220,7 +221,7 @@ with aba_previsao_individual:
         valores_x = pd.DataFrame(dicionario, index=[0]) 
         
         #leitura do arquivo que salvamos após os ajustes finais da base, só para pegar as colunas
-        dados = pd.read_csv(r'datasets\brasileirao_serie_a_preparada_final_op2.csv', sep =';', encoding='utf-8') 
+        dados = pd.read_csv(arquivo_dataset, sep =';', encoding='utf-8') 
         colunas = list(dados.drop('publico', axis = 1).columns) # para retirar a coluna publico(que é o y. Mantemos só as colunas de parâmetros X)
         valores_x = valores_x[colunas] #fazendo isso, reordenamos as colunas do DF na mesma ordem do base que o modelo foi treinado (List colunas obtida na linha anterior anterior no código)
         
@@ -313,10 +314,9 @@ with aba_previsao_arquivo:
         valores_x = pd.DataFrame(dicionario) #, index=[0]) 
        
         #leitura do arquivo que salvamos após os ajustes finais da base, só para pegar as colunas
-        dados_prep = pd.read_csv(r'datasets\brasileirao_serie_a_preparada_final_op2.csv', sep =';', encoding='utf-8') 
+        dados_prep = pd.read_csv(arquivo_dataset, sep =';', encoding='utf-8') 
         colunas = list(dados_prep.drop('publico', axis = 1).columns) # para retirar a coluna publico(que é o y. Mantemos só as colunas de parâmetros X)
         valores_x = valores_x[colunas] #fazendo isso, reordenamos as colunas do DF na mesma ordem do base que o modelo foi treinado (List colunas obtida na linha anterior anterior no código)
-
         
         # Aplicando as normalizações e codificações no DF
         valores_x['rodada'] = valores_x['rodada'].apply(norm_escala, args = (1, 38) )
@@ -373,11 +373,10 @@ with aba_previsao_arquivo:
                 
         with st.container(border=True): # linha 3
             st.dataframe(dados.style.apply(color_row_coding, axis=1))#, hide_index=True)
-            
 
 with aba_sobre:
         col1, col2 = st.columns([0.13, 0.87]) # cria duas colunas informando a proporção da largura
-        col1.image('figuras/puc_minas.jpg', width=200)
+        col1.image(logo_puc_minas, width=200)
         col2.markdown('#### PÓS GRADUAÇÃO EM CIÊNCIA DE DADOS E BIG DATA')
         col2.markdown('#### TRABALHO DE CONCLUSÃO DE CURSO')    
         col2.markdown('#### MAIO/2024')
