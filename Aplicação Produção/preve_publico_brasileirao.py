@@ -1,9 +1,7 @@
 import streamlit as st
 import datetime
 import pandas as pd
-import pickle # para salvamento e carregamento de modelos
-#import joblib # para salvamento e carregamento de modelos
-#from sklearn.ensemble import GradientBoostingRegressor
+import pickle
 
 
 st.set_page_config(
@@ -16,10 +14,10 @@ st.set_page_config(
 
 # 1º Melhor Modelo, mas arquivo do modelo ficou muito grande (+300MB) para comitar no GitHub
 # (o que é necessário para publicar a aplicação no servidor do streamlita ou do GitHub )
-arquivo_modelo = 'modelo_treinado_final.sav'
+#arquivo_modelo = 'modelos/modelo_treinado_final.sav'
 
 # 2º Melhor Modelo - vamos usar para publicar a aplicação para demonstração, já que o tamanho do arquivo ficou pequeno (-2MB)
-#arquivo_modelo = 'modelo_treinado_GradientBoostingRegressor().sav'
+arquivo_modelo = 'modelos/modelo_treinado_GradientBoostingRegressor().sav'
 
 
 # Todos os times da base, exceto 'América-MG', pois este foi dexiado de fora na dummização
@@ -48,15 +46,6 @@ times_2024 = ['Athletico-PR', 'Atlético-GO', 'Atlético-MG', 'Botafogo', 'Corin
 grau_investimento_times_2024 = ['alto', 'muito_baixo', 'alto', 'medio', 'alto', 'muito_baixo', 'muito_baixo', 'baixo', 'baixo', 'muito_baixo',
                                 'muito_alto', 'medio', 'baixo', 'medio', 'medio', 'muito_baixo', 'muito_alto', 'medio', 'medio', 'medio']
 
-# VAMOS USAR DICIONÁRIOS PARA AJUDAR A ORGANIZAR E COLETAR OS DADOS
-# AQUI SÃO AS COLUNAS DA BASE FINAL COM OS CAMPOS E VALORES NORMAIS (ANTES DA PADRONIZAÇÃO, DUMMIZAÇÃO E ENCODING)
-#Dados numéricos
-x_numericos = {'rodada': 1, 'points_mand_last_5': 0, 'points_visit_last_5': 0, 'colocacao_mandante_antes': 1, 
-               'colocacao_visitante_antes': 1}
-
-#Dados encoded (categóricos com ordenação)
-x_encoded = {'grau_investimento_mandante': 0, 
-             'grau_investimento_visitante': 0}
 
 
 #Dados com escolha de categoria (Aqui com os campos normais - sem ser dummie. É a forma como o usuário informará os dados)
@@ -65,15 +54,7 @@ x_listas = {'trimestre': trimestres_dummies,
             'dia_semana': dias_semana_dummies,
             'time_mandante': todos_times_dummies, 'time_visitante': todos_times_dummies}
 
-#como o dicionário x_listas está organizado de uma forma a propiciar a organização de como os dados serão coletados,
-#vamos precisar de um dicionário auxiliar, que estará organizado da forma como a nossa base de dados foi organizada para o nosso
-#modelo de predição (ou seja, com colunas dummies)
-#então, criamos a seguir esse dicionário auxiliar e já ajustamos os seus valores para zero (inicialização)
-dicionario = {}
-for item in x_listas:
-    for valor in x_listas[item]:
-        dicionario[f'{item}_{valor}'] = 0  #composição do nome da chave(coluna dummie) e atribuição do valor inicial 0
-#print(dicionario) # apenas para visualizarmos o dicionário com campos dummies
+
 
 ####### ALGUMAS FUNÇÕES AUXILIARES ##############
 # Retorna o dia da semana por extenso
@@ -106,7 +87,7 @@ def formata_numero(num):
 #st.title(':blue[Aplicativo de Previsão Público em Jogos do Campeonato Brasileiro de Futebol]')
 
 col1, col2 = st.columns([0.5,9.5])
-col1.image('puc_minas.jpg', width=80)
+col1.image('figuras/puc_minas.jpg', width=80)
 col2.header('Aplicativo de Previsão Público em Jogos do Campeonato Brasileiro de Futebol ⚽')
 
 aba_previsao_individual, aba_previsao_arquivo, aba_sobre = st.tabs(['Previsão de Público - Jogo Individual',
@@ -114,9 +95,31 @@ aba_previsao_individual, aba_previsao_arquivo, aba_sobre = st.tabs(['Previsão d
                                                                     'Sobre'])
 
 with aba_previsao_individual:
+    #### PREPARAÇÃO DOS DADOS #####################
+    # VAMOS USAR DICIONÁRIOS PARA AJUDAR A ORGANIZAR E COLETAR OS DADOS
+    # AQUI SÃO AS COLUNAS DA BASE FINAL COM OS CAMPOS E VALORES NORMAIS (ANTES DA PADRONIZAÇÃO, DUMMIZAÇÃO E ENCODING)
+    #Dados numéricos
+    x_numericos = {'rodada': 1, 'points_mand_last_5': 0, 'points_visit_last_5': 0, 'colocacao_mandante_antes': 1, 
+                   'colocacao_visitante_antes': 1}
+
+    #Dados encoded (categóricos com ordenação)
+    x_encoded = {'grau_investimento_mandante': 0, 'grau_investimento_visitante': 0}
+    
+    #como o dicionário x_listas está organizado de uma forma a propiciar a organização de como os dados serão coletados,
+    #vamos precisar de um dicionário auxiliar, que estará organizado da forma como a nossa base de dados foi organizada para o nosso
+    #modelo de predição (ou seja, com colunas dummies)
+    #então, criamos a seguir esse dicionário auxiliar e já ajustamos os seus valores para zero (inicialização)
+    dicionario = {}
+    for item in x_listas:
+        for valor in x_listas[item]:
+            dicionario[f'{item}_{valor}'] = 0  #composição do nome da chave(coluna dummie) e atribuição do valor inicial 0
+    #print(dicionario) # apenas para visualizarmos o dicionário com campos dummies
+
+
+
+    ######## INTERFACE ########################
     st.markdown('### Forneça os dados do jogo para predição do público esperado')    
     
-
     with st.container(border=True):  # linha 1
         st.markdown('###### Dados do Jogo')    
 
@@ -236,12 +239,6 @@ with aba_previsao_individual:
         # carrega o modelo 
         modelo = pickle.load(open(arquivo_modelo, 'rb'))  #carregando o modelo salvo (desta forma vai carregar de novo toda vez que clicar no botão. Poderia carregar sío uma vez fora do laço, no início do código)
         
-        # resgatando com joblib o modelo salvo com pickle
-        #modelo = joblib.load('modelo_treinado_final.sav')
-
-        # resgatando com joblib o modelo salvo com joblib
-        #modelo = joblib.load('melhor_modelo.joblib')
-
         # Faz a predição e exibe, formatando a saída com . separador de milhar e sem casas decimais
         publico = modelo.predict(valores_x)
         st.markdown( '### Público estimado: ' + formata_numero(publico[0]) )
@@ -378,40 +375,30 @@ with aba_previsao_arquivo:
             st.dataframe(dados.style.apply(color_row_coding, axis=1))#, hide_index=True)
             
 
-        
-        
 with aba_sobre:
-        col1, col2 = st.columns([0.07, 0.7]) # cria duas colunas informando a proporção da largura
-        col1.image('puc_minas.jpg', width=130)
-        col2.subheader('Pós Graduação em Ciência de Dados e Big Data')
-        col2.subheader('Trabalho de Conclusão de Curso')    
+        col1, col2 = st.columns([0.13, 0.87]) # cria duas colunas informando a proporção da largura
+        col1.image('figuras/puc_minas.jpg', width=200)
+        col2.markdown('#### PÓS GRADUAÇÃO EM CIÊNCIA DE DADOS E BIG DATA')
+        col2.markdown('#### TRABALHO DE CONCLUSÃO DE CURSO')    
+        col2.markdown('#### MAIO/2024')
+        
         st.write('')
         st.write('')
         
-        # Artifícopara centralizar o markdown
-        col3, col4 =  st.columns([0.01, 0.99])
-        col3.write('')
-        col4.markdown('#### **UM MODELO DE APRENDIZADO DE MÁQUINA SUPERVISIONADO PARA PREVISÃO DE QUANTIDADE DE PÚBLICO NOS JOGOS DO CAMPEONATO BRASILEIRO DE FUTEBOL**')
+        st.subheader('Esse aplicativo é parte do trabalho: ' +
+                     '"Um Modelo de Aprendizado de Máquina Supervisionado para Previsão ' + 
+                     'de Quantidade de Público nos Jogos do Campeonato Brasileiro de Futebol"')    
         
-        col5, col6 =  st.columns([0.3, 0.7])
-        col5.write('')        
-        col6.markdown('#### Etapa 03: Implantação do Modelo em Produção')
-        
-        col7, col8 =  st.columns([0.32, 0.68])
-        col7.write('')                
-        col8.markdown('#### Salomão Fernandes de Freitas Júnior')
+        st.subheader('Etapa 03: Implantação do Modelo em Produção')
 
-        col7, col8 =  st.columns([0.34, 0.66])
-        col8.markdown('#### salomaofreitasjr@gmail.com') # colocar e-mail clicável
+        st.write('')
+        st.write('')        
         
-        st.write('')
-        st.write('')
+        st.markdown('#### Salomão Fernandes de Freitas Júnior ' +
+                     '(salomaofreitasjr@gmail.com)')
 
-        col9, col10 =  st.columns([0.3, 0.7])
-        col9.write('')
-        col10.markdown('#### Repositório do Projeto: XXXXXXXXXXXXXXXXXXXXXXXXXX') #colocar link
+        
+        st.markdown('#### Repositório do Projeto: https://github.com/salomaofreitasjr/TCC_PUC_MINAS_POS_CIENCIA_DE_DADOS_2023')
 
-        col11, col12 =  st.columns([0.4, 0.6])
-        col11.write('')
-        col12.markdown('#### MAIO/2024')
-    
+
+        
