@@ -1,0 +1,4 @@
+pandas==2.2.2
+scikit-learn==1.2.2
+# Não põe a streamlit, pq vamos implantar no streamlit e dá erro se colocarmos a bilbioteca aqui
+# e nem pickle e datetime, pois já são nativas do pyhton. Não instalamos
