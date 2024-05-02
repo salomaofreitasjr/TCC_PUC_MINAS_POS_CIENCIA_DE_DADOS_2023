@@ -220,36 +220,42 @@ with aba_previsao_individual:
     botao = st.button('**Prever público para o jogo**')
 
     if botao: #se botão foi clicado
-        #juntamos tudo em dicionario para passar ao nosso modelo
-        dicionario.update(x_numericos) #este método update "junta" dois dicionários (acrescenta o x_numericos a dicionario)
-        dicionario.update(x_encoded) #acrescenta x_encoded à dicionario
-    
-        #criando um DF a partir do dicionario, para poder passar ao nosso modelo (como é apenas uma linha, passamos o indice 0 - poderíamos passar um range com a quantidade de linhas)
-        valores_x = pd.DataFrame(dicionario, index=[0]) 
-        
-        #leitura do arquivo que salvamos após os ajustes finais da base, só para pegar as colunas
-        dados = pd.read_csv(arquivo_dataset, sep =';', encoding='utf-8') 
-        colunas = list(dados.drop('publico', axis = 1).columns) # para retirar a coluna publico(que é o y. Mantemos só as colunas de parâmetros X)
-        valores_x = valores_x[colunas] #fazendo isso, reordenamos as colunas do DF na mesma ordem do base que o modelo foi treinado (List colunas obtida na linha anterior anterior no código)
-        
-        # Aplicando as normalizações e codificações no DF
-        valores_x['rodada'] = valores_x['rodada'].apply(norm_escala, args = (1, 38) )
-        valores_x['points_mand_last_5'] = valores_x['points_mand_last_5'].apply(norm_escala, args = (0, 15) )
-        valores_x['points_visit_last_5'] = valores_x['points_visit_last_5'].apply(norm_escala, args = (0, 15) )
-        valores_x['colocacao_mandante_antes'] = valores_x['colocacao_mandante_antes'].apply(norm_escala, args = (1, 20) )
-        valores_x['colocacao_visitante_antes'] = valores_x['colocacao_visitante_antes'].apply(norm_escala, args = (1, 20) )
-        valores_x['grau_investimento_mandante'] = valores_x['grau_investimento_mandante'].map({'muito_baixo': 1, 'baixo': 2, 'medio': 3, 'alto': 4, 'muito_alto': 5}).apply(norm_escala, args = (1, 5))
-        valores_x['grau_investimento_visitante'] = valores_x['grau_investimento_visitante'].map({'muito_baixo': 1, 'baixo': 2, 'medio': 3, 'alto': 4, 'muito_alto': 5}).apply(norm_escala, args = (1, 5))
-        
-        #Exibe para observarmos
-        #valores_x
+        ## SPINNER PARA DAR FEEDBACK AO USUÁRIO ENQUANTO EXECUTA, POIS MA PRIMEIRA CARGA DO MODELO PODE DEMORAR
+        with st.spinner(text = 'Aguarde Processo de Carga do Modelo e Previsão...'):
 
-        # carrega o modelo 
-        modelo = pickle.load(open(arquivo_modelo, 'rb'))  #carregando o modelo salvo (desta forma vai carregar de novo toda vez que clicar no botão. Poderia carregar sío uma vez fora do laço, no início do código)
+            #juntamos tudo em dicionario para passar ao nosso modelo
+            dicionario.update(x_numericos) #este método update "junta" dois dicionários (acrescenta o x_numericos a dicionario)
+            dicionario.update(x_encoded) #acrescenta x_encoded à dicionario
         
-        # Faz a predição e exibe, formatando a saída com . separador de milhar e sem casas decimais
-        publico = modelo.predict(valores_x)
-        st.markdown( '### Público estimado: ' + formata_numero(publico[0]) )
+            #criando um DF a partir do dicionario, para poder passar ao nosso modelo (como é apenas uma linha, passamos o indice 0 - poderíamos passar um range com a quantidade de linhas)
+            valores_x = pd.DataFrame(dicionario, index=[0]) 
+            
+            #leitura do arquivo que salvamos após os ajustes finais da base, só para pegar as colunas
+            dados = pd.read_csv(arquivo_dataset, sep =';', encoding='utf-8') 
+            colunas = list(dados.drop('publico', axis = 1).columns) # para retirar a coluna publico(que é o y. Mantemos só as colunas de parâmetros X)
+            valores_x = valores_x[colunas] #fazendo isso, reordenamos as colunas do DF na mesma ordem do base que o modelo foi treinado (List colunas obtida na linha anterior anterior no código)
+            
+            # Aplicando as normalizações e codificações no DF
+            valores_x['rodada'] = valores_x['rodada'].apply(norm_escala, args = (1, 38) )
+            valores_x['points_mand_last_5'] = valores_x['points_mand_last_5'].apply(norm_escala, args = (0, 15) )
+            valores_x['points_visit_last_5'] = valores_x['points_visit_last_5'].apply(norm_escala, args = (0, 15) )
+            valores_x['colocacao_mandante_antes'] = valores_x['colocacao_mandante_antes'].apply(norm_escala, args = (1, 20) )
+            valores_x['colocacao_visitante_antes'] = valores_x['colocacao_visitante_antes'].apply(norm_escala, args = (1, 20) )
+            valores_x['grau_investimento_mandante'] = valores_x['grau_investimento_mandante'].map({'muito_baixo': 1, 'baixo': 2, 'medio': 3, 'alto': 4, 'muito_alto': 5}).apply(norm_escala, args = (1, 5))
+            valores_x['grau_investimento_visitante'] = valores_x['grau_investimento_visitante'].map({'muito_baixo': 1, 'baixo': 2, 'medio': 3, 'alto': 4, 'muito_alto': 5}).apply(norm_escala, args = (1, 5))
+            
+            #Exibe para observarmos
+            #valores_x
+
+            
+            # carrega o modelo 
+            modelo = pickle.load(open(arquivo_modelo, 'rb'))
+            
+            # Faz a predição e exibe, formatando a saída com . separador de milhar e sem casas decimais
+            publico = modelo.predict(valores_x)
+        
+            st.markdown( '### Público estimado: ' + formata_numero(publico[0]) )
+            ### FIM SPINNER #########
 
 with aba_previsao_arquivo:
     st.markdown('### Upload de arquivo com dados de jogos para predição do público esperado') 
@@ -257,129 +263,132 @@ with aba_previsao_arquivo:
         arquivo = st.file_uploader(label = '**Carregue seu arquivo**', type=['csv','xlsx'], accept_multiple_files=False, 
                                    key=None, help='Ajuda', on_change=None, args=None, kwargs=None, 
                                    disabled=False, label_visibility="visible")
-
-    if not (arquivo is None): 
-        #st.write(arquivo.type) 
     
-        # Lê em um DF
-        if arquivo.type == 'text/csv':
-            dados = pd.read_csv(arquivo, sep =';', encoding='latin')             
-        else: # excel
-            dados = pd.read_excel(arquivo)
-
-        dados['data'] = pd.to_datetime(dados['data'], dayfirst=True) # para garantir o reconhecimento do tipo dada corretamente
-        #st.write(dados.head(10))
-
-        ###### PREPARAÇÃO DOS DADOS ########################################
-        dicionario = {}
-        for item in x_listas:
-            for valor in x_listas[item]:
-                dicionario[f'{item}_{valor}'] = [0] * len(dados)  # os itens são criados todos zerados
+    if not (arquivo is None): 
+        ## SPINNER PARA DAR FEEDBACK AO USUÁRIO ENQUANTO EXECUTA, POIS MA PRIMEIRA CARGA DO MODELO PODE DEMORAR
+        with st.spinner(text = 'Aguarde Processo de Carga do Modelo e Previsão...'):
+            #st.write(arquivo.type) 
         
-        #Dados numéricos - CRIADOS COM OS DADOS DO ARQUIVO LIDO
-        x_numericos = {'rodada': list(dados['rodada']), 
-                       'points_mand_last_5': list(dados['points_mand_last_5']), 
-                       'points_visit_last_5': list(dados['points_visit_last_5']), 
-                       'colocacao_mandante_antes': list(dados['colocacao_mandante_antes']), 
-                       'colocacao_visitante_antes': list(dados['colocacao_visitante_antes'])}
+            # Lê em um DF
+            if arquivo.type == 'text/csv':
+                dados = pd.read_csv(arquivo, sep =';', encoding='latin')             
+            else: # excel
+                dados = pd.read_excel(arquivo)
 
-        #Dados encoded (categóricos com ordenação) - VALORES TEMPORÁRIOS
-        x_encoded = {'grau_investimento_mandante': list(dados['time_mandante']),  # aqui os valores são temporários, depois colocaremos o valore correto
-                     'grau_investimento_visitante': list(dados['time_visitante'])}
-        
+            dados['data'] = pd.to_datetime(dados['data'], dayfirst=True) # para garantir o reconhecimento do tipo dada corretamente
+            #st.write(dados.head(10))
 
-        # Ajuste de dados transformados
-        for i in range(len(dados)):
-            # Atualizar no dicionário os campos trimestre e dia_semana
-            trim = get_trimestre(dados.loc[i, 'data'])
-            dia_sem = get_weekday(dados.loc[i, 'data'])
-            if trim not in ['1º Trimestre', '2º Trimestre']: # 1 não tem no modelo treinado, e 2 foi retirado na dummização
-                dicionario[f'trimestre_{trim}'][i] = 1 # coluna dummie
-            if dia_sem not in ['Domingo']: # Domingo retirado na dummização 
-                dicionario[f'dia_semana_{dia_sem}'][i] = 1 # coluna dummie
-        
-            # time_mandante (e grau_investimento_mandante)
-            mandante = dados.loc[i, 'time_mandante']
-            grau_mand = grau_investimento_times_2024[times_2024.index(mandante)]
-            if mandante not in ['América-MG']: #'América-MG' saiu na dummização
-                dicionario[f'time_mandante_{mandante}'][i] = 1 # coluna dummie
-                x_encoded['grau_investimento_mandante'][i] = grau_mand # coluna encoded
+            ###### PREPARAÇÃO DOS DADOS ########################################
+            dicionario = {}
+            for item in x_listas:
+                for valor in x_listas[item]:
+                    dicionario[f'{item}_{valor}'] = [0] * len(dados)  # os itens são criados todos zerados
             
-            # time_visitante (e grau_investimento_visitante)
-            visitante = dados.loc[i, 'time_visitante']
-            grau_visit = grau_investimento_times_2024[times_2024.index(visitante)]
-            if visitante not in ['América-MG']: #'América-MG' saiu na dummização
-                dicionario[f'time_visitante_{visitante}'][i] = 1 # coluna dummie
-                x_encoded['grau_investimento_visitante'][i] = grau_visit # coluna encoded
+            #Dados numéricos - CRIADOS COM OS DADOS DO ARQUIVO LIDO
+            x_numericos = {'rodada': list(dados['rodada']), 
+                        'points_mand_last_5': list(dados['points_mand_last_5']), 
+                        'points_visit_last_5': list(dados['points_visit_last_5']), 
+                        'colocacao_mandante_antes': list(dados['colocacao_mandante_antes']), 
+                        'colocacao_visitante_antes': list(dados['colocacao_visitante_antes'])}
 
-        
-        #juntamos tudo em dicionario para passar ao nosso modelo
-        dicionario.update(x_numericos) #este método update "junta" dois dicionários (acrescenta o x_numericos a dicionario)
-        dicionario.update(x_encoded) #acrescenta x_encoded à dicionario
+            #Dados encoded (categóricos com ordenação) - VALORES TEMPORÁRIOS
+            x_encoded = {'grau_investimento_mandante': list(dados['time_mandante']),  # aqui os valores são temporários, depois colocaremos o valore correto
+                        'grau_investimento_visitante': list(dados['time_visitante'])}
+            
 
-        #criando um DF a partir do dicionario, para poder passar ao nosso modelo (como é apenas uma linha, passamos o indice 0 - poderíamos passar um range com a quantidade de linhas)
-        valores_x = pd.DataFrame(dicionario) #, index=[0]) 
-       
-        #leitura do arquivo que salvamos após os ajustes finais da base, só para pegar as colunas
-        dados_prep = pd.read_csv(arquivo_dataset, sep =';', encoding='utf-8') 
-        colunas = list(dados_prep.drop('publico', axis = 1).columns) # para retirar a coluna publico(que é o y. Mantemos só as colunas de parâmetros X)
-        valores_x = valores_x[colunas] #fazendo isso, reordenamos as colunas do DF na mesma ordem do base que o modelo foi treinado (List colunas obtida na linha anterior anterior no código)
-        
-        # Aplicando as normalizações e codificações no DF
-        valores_x['rodada'] = valores_x['rodada'].apply(norm_escala, args = (1, 38) )
-        valores_x['points_mand_last_5'] = valores_x['points_mand_last_5'].apply(norm_escala, args = (0, 15) )
-        valores_x['points_visit_last_5'] = valores_x['points_visit_last_5'].apply(norm_escala, args = (0, 15) )
-        valores_x['colocacao_mandante_antes'] = valores_x['colocacao_mandante_antes'].apply(norm_escala, args = (1, 20) )
-        valores_x['colocacao_visitante_antes'] = valores_x['colocacao_visitante_antes'].apply(norm_escala, args = (1, 20) )
-        valores_x['grau_investimento_mandante'] = valores_x['grau_investimento_mandante'].map({'muito_baixo': 1, 'baixo': 2, 'medio': 3, 'alto': 4, 'muito_alto': 5}).apply(norm_escala, args = (1, 5))
-        valores_x['grau_investimento_visitante'] = valores_x['grau_investimento_visitante'].map({'muito_baixo': 1, 'baixo': 2, 'medio': 3, 'alto': 4, 'muito_alto': 5}).apply(norm_escala, args = (1, 5))
-        ###############################################
-
-        
-
-        # carrega o modelo 
-        modelo = pickle.load(open(arquivo_modelo, 'rb'))  
+            # Ajuste de dados transformados
+            for i in range(len(dados)):
+                # Atualizar no dicionário os campos trimestre e dia_semana
+                trim = get_trimestre(dados.loc[i, 'data'])
+                dia_sem = get_weekday(dados.loc[i, 'data'])
+                if trim not in ['1º Trimestre', '2º Trimestre']: # 1 não tem no modelo treinado, e 2 foi retirado na dummização
+                    dicionario[f'trimestre_{trim}'][i] = 1 # coluna dummie
+                if dia_sem not in ['Domingo']: # Domingo retirado na dummização 
+                    dicionario[f'dia_semana_{dia_sem}'][i] = 1 # coluna dummie
+            
+                # time_mandante (e grau_investimento_mandante)
+                mandante = dados.loc[i, 'time_mandante']
+                grau_mand = grau_investimento_times_2024[times_2024.index(mandante)]
+                if mandante not in ['América-MG']: #'América-MG' saiu na dummização
+                    dicionario[f'time_mandante_{mandante}'][i] = 1 # coluna dummie
+                    x_encoded['grau_investimento_mandante'][i] = grau_mand # coluna encoded
                 
-        # Faz a predição e inclui como uma coluna do DF referente ao arquivo de entrada, formatando a saída com . separador de milhar e sem casas decimais
-        #publico = modelo.predict(valores_x)
-        dados['PÚBLICO ESTIMADO'] = modelo.predict(valores_x)
-               
+                # time_visitante (e grau_investimento_visitante)
+                visitante = dados.loc[i, 'time_visitante']
+                grau_visit = grau_investimento_times_2024[times_2024.index(visitante)]
+                if visitante not in ['América-MG']: #'América-MG' saiu na dummização
+                    dicionario[f'time_visitante_{visitante}'][i] = 1 # coluna dummie
+                    x_encoded['grau_investimento_visitante'][i] = grau_visit # coluna encoded
 
-        #st.divider()
-        #st.write(valores_x.head(10)) # DF com os valores preparados para aplicação no modelo de ML
+            
+            #juntamos tudo em dicionario para passar ao nosso modelo
+            dicionario.update(x_numericos) #este método update "junta" dois dicionários (acrescenta o x_numericos a dicionario)
+            dicionario.update(x_encoded) #acrescenta x_encoded à dicionario
 
-        st.write('')
-        st.markdown( '### Veja abaixo a quantidade de público prevista para cada jogo no arquivo indicado'  )
+            #criando um DF a partir do dicionario, para poder passar ao nosso modelo (como é apenas uma linha, passamos o indice 0 - poderíamos passar um range com a quantidade de linhas)
+            valores_x = pd.DataFrame(dicionario) #, index=[0]) 
         
-        #### Ajuste de algumas colunas para visualização
-        #st.markdown( '### Público estimado: {:,.0f} pessoas'.format(int(publico[0])).replace(',','.')  )
-        dados['data'] = dados['data'].apply(formata_data)
-        dados['points_mand_last_5'] = dados['points_mand_last_5'].apply(int)
-        dados['points_visit_last_5'] = dados['points_visit_last_5'].apply(int)
-        dados['colocacao_mandante_antes'] = dados['colocacao_mandante_antes'].apply(int)
-        dados['colocacao_visitante_antes'] = dados['colocacao_visitante_antes'].apply(int)
+            #leitura do arquivo que salvamos após os ajustes finais da base, só para pegar as colunas
+            dados_prep = pd.read_csv(arquivo_dataset, sep =';', encoding='utf-8') 
+            colunas = list(dados_prep.drop('publico', axis = 1).columns) # para retirar a coluna publico(que é o y. Mantemos só as colunas de parâmetros X)
+            valores_x = valores_x[colunas] #fazendo isso, reordenamos as colunas do DF na mesma ordem do base que o modelo foi treinado (List colunas obtida na linha anterior anterior no código)
+            
+            # Aplicando as normalizações e codificações no DF
+            valores_x['rodada'] = valores_x['rodada'].apply(norm_escala, args = (1, 38) )
+            valores_x['points_mand_last_5'] = valores_x['points_mand_last_5'].apply(norm_escala, args = (0, 15) )
+            valores_x['points_visit_last_5'] = valores_x['points_visit_last_5'].apply(norm_escala, args = (0, 15) )
+            valores_x['colocacao_mandante_antes'] = valores_x['colocacao_mandante_antes'].apply(norm_escala, args = (1, 20) )
+            valores_x['colocacao_visitante_antes'] = valores_x['colocacao_visitante_antes'].apply(norm_escala, args = (1, 20) )
+            valores_x['grau_investimento_mandante'] = valores_x['grau_investimento_mandante'].map({'muito_baixo': 1, 'baixo': 2, 'medio': 3, 'alto': 4, 'muito_alto': 5}).apply(norm_escala, args = (1, 5))
+            valores_x['grau_investimento_visitante'] = valores_x['grau_investimento_visitante'].map({'muito_baixo': 1, 'baixo': 2, 'medio': 3, 'alto': 4, 'muito_alto': 5}).apply(norm_escala, args = (1, 5))
+            ###############################################
+
         
-        dados['publico'] = dados['publico'].apply(formata_numero)
-        dados['PÚBLICO ESTIMADO'] = dados['PÚBLICO ESTIMADO'].apply(formata_numero)
+            # carrega o modelo 
+            modelo = pickle.load(open(arquivo_modelo, 'rb'))
+                    
+            # Faz a predição e inclui como uma coluna do DF referente ao arquivo de entrada, formatando a saída com . separador de milhar e sem casas decimais
+            #publico = modelo.predict(valores_x)
+            dados['PÚBLICO ESTIMADO'] = modelo.predict(valores_x)
+                    
 
-        dados = dados.rename(columns={'rodada': 'Rodada', 'data': 'Data', 'time_mandante': 'Time Mandante', 'time_visitante': 'Time Visitante',
-                              'points_mand_last_5': 'Pontos do Mandante nas Últimas 5 Rodadas',
-                              'points_visit_last_5': 'Pontos do Visitante nas Últimas 5 Rodadas',
-                              'colocacao_mandante_antes': 'Classificação do Mandante na Tabela',
-                              'colocacao_visitante_antes': 'Classificação do Visitante na Tabela',
-                              'publico': 'Público Real' })
+            #st.divider()
+            #st.write(valores_x.head(10)) # DF com os valores preparados para aplicação no modelo de ML
 
-
-        #dados.index = [''] * len(dados)
-        dados.index = dados.index + 1  # para os índices mostrarem o numero da linha
-        
-        # funçao para colorir as linhas do DF
-        # row.name é o indice da linha
-        def color_row_coding(row):
-            return ['background-color:lightgray'] * len(row) if row.name % 2 == 0 else ['background-color:white'] * len(row)
+            st.write('')
+            st.markdown( '### Veja abaixo a quantidade de público prevista para cada jogo no arquivo indicado'  )
                 
-        with st.container(border=True): # linha 3
-            st.dataframe(dados.style.apply(color_row_coding, axis=1))#, hide_index=True)
+            #### Ajuste de algumas colunas para visualização
+            #st.markdown( '### Público estimado: {:,.0f} pessoas'.format(int(publico[0])).replace(',','.')  )
+            dados['data'] = dados['data'].apply(formata_data)
+            dados['points_mand_last_5'] = dados['points_mand_last_5'].apply(int)
+            dados['points_visit_last_5'] = dados['points_visit_last_5'].apply(int)
+            dados['colocacao_mandante_antes'] = dados['colocacao_mandante_antes'].apply(int)
+            dados['colocacao_visitante_antes'] = dados['colocacao_visitante_antes'].apply(int)
+                
+            dados['publico'] = dados['publico'].apply(formata_numero)
+            dados['PÚBLICO ESTIMADO'] = dados['PÚBLICO ESTIMADO'].apply(formata_numero)
+
+            dados = dados.rename(columns={'rodada': 'Rodada', 'data': 'Data', 'time_mandante': 'Time Mandante', 'time_visitante': 'Time Visitante',
+                                'points_mand_last_5': 'Pontos do Mandante nas Últimas 5 Rodadas',
+                                'points_visit_last_5': 'Pontos do Visitante nas Últimas 5 Rodadas',
+                                'colocacao_mandante_antes': 'Classificação do Mandante na Tabela',
+                                'colocacao_visitante_antes': 'Classificação do Visitante na Tabela',
+                                'publico': 'Público Real' })
+
+
+            #dados.index = [''] * len(dados)
+            dados.index = dados.index + 1  # para os índices mostrarem o numero da linha
+            
+            # funçao para colorir as linhas do DF
+            # row.name é o indice da linha
+            def color_row_coding(row):
+                return ['background-color:lightgray'] * len(row) if row.name % 2 == 0 else ['background-color:white'] * len(row)
+                
+            with st.container(border=True): # linha 3
+                st.dataframe(dados.style.apply(color_row_coding, axis=1))#, hide_index=True)
+
+        ###### FIM SPINNER ###########
 
 with aba_sobre:
         col1, col2 = st.columns([0.13, 0.87]) # cria duas colunas informando a proporção da largura
