@@ -388,7 +388,13 @@ with aba_previsao_arquivo:
             with st.container(border=True): # linha 3
                 st.dataframe(dados.style.apply(color_row_coding, axis=1))#, hide_index=True)
 
+                # Um botão para download do resultado        
+                csv = dados.to_csv(index=False, sep =';').encode('latin')
+                st.download_button("Download como arquivo csv", csv, "Previsao_de_Publico.csv", "text/csv", key='download-csv' )
+
         ###### FIM SPINNER ###########
+
+        
 
 with aba_sobre:
         col1, col2 = st.columns([0.13, 0.87]) # cria duas colunas informando a proporção da largura
