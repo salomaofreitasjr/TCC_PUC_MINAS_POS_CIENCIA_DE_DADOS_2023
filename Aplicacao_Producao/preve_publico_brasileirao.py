@@ -418,8 +418,7 @@ with aba_sobre:
         st.markdown('#### Salomão Fernandes de Freitas Júnior ' +
                      '(salomaofreitasjr@gmail.com)')
 
-        
-        st.markdown('#### Repositório do Projeto: https://github.com/salomaofreitasjr/TCC_PUC_MINAS_POS_CIENCIA_DE_DADOS_2023')
+        st.markdown('#### Repositório do Projeto:  https://github.com/salomaofreitasjr/TCC_PUC_MINAS_POS_CIENCIA_DE_DADOS_2023')
 
 
         
