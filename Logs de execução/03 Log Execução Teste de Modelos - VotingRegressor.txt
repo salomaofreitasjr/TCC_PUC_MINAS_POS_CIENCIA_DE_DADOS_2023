@@ -1,0 +1,50 @@
+### Rodando comitê de modelos: VotingRegressor() ###
+Iniciado em 30/04/2024 14:08:58
+Fitting 10 folds for each of 1 candidates, totalling 10 fits
+[CV 1/10; 1/1] START ...........................................................
+/usr/local/lib/python3.10/dist-packages/sklearn/neural_network/_multilayer_perceptron.py:686: ConvergenceWarning: Stochastic Optimizer: Maximum iterations (1000) reached and the optimization hasn't converged yet.
+  warnings.warn(
+[CV 1/10; 1/1] END  neg_mean_absolute_error: (test=-6579.784) neg_mean_squared_error: (test=-84623346.096) neg_root_mean_squared_error: (test=-9199.095) r2: (test=0.456) total time= 1.7min
+[CV 2/10; 1/1] START ...........................................................
+/usr/local/lib/python3.10/dist-packages/sklearn/neural_network/_multilayer_perceptron.py:686: ConvergenceWarning: Stochastic Optimizer: Maximum iterations (1000) reached and the optimization hasn't converged yet.
+  warnings.warn(
+[CV 2/10; 1/1] END  neg_mean_absolute_error: (test=-6837.798) neg_mean_squared_error: (test=-87058758.850) neg_root_mean_squared_error: (test=-9330.528) r2: (test=0.531) total time= 1.6min
+[CV 3/10; 1/1] START ...........................................................
+/usr/local/lib/python3.10/dist-packages/sklearn/neural_network/_multilayer_perceptron.py:686: ConvergenceWarning: Stochastic Optimizer: Maximum iterations (1000) reached and the optimization hasn't converged yet.
+  warnings.warn(
+[CV 3/10; 1/1] END  neg_mean_absolute_error: (test=-7029.345) neg_mean_squared_error: (test=-94151000.075) neg_root_mean_squared_error: (test=-9703.144) r2: (test=0.493) total time= 1.6min
+[CV 4/10; 1/1] START ...........................................................
+/usr/local/lib/python3.10/dist-packages/sklearn/neural_network/_multilayer_perceptron.py:686: ConvergenceWarning: Stochastic Optimizer: Maximum iterations (1000) reached and the optimization hasn't converged yet.
+  warnings.warn(
+[CV 4/10; 1/1] END  neg_mean_absolute_error: (test=-6227.504) neg_mean_squared_error: (test=-72217181.106) neg_root_mean_squared_error: (test=-8498.069) r2: (test=0.565) total time= 1.6min
+[CV 5/10; 1/1] START ...........................................................
+[CV 5/10; 1/1] END  neg_mean_absolute_error: (test=-6244.582) neg_mean_squared_error: (test=-75992405.945) neg_root_mean_squared_error: (test=-8717.362) r2: (test=0.572) total time= 1.6min
+[CV 6/10; 1/1] START ...........................................................
+[CV 6/10; 1/1] END  neg_mean_absolute_error: (test=-6265.175) neg_mean_squared_error: (test=-82804240.985) neg_root_mean_squared_error: (test=-9099.684) r2: (test=0.527) total time= 1.6min
+[CV 7/10; 1/1] START ...........................................................
+[CV 7/10; 1/1] END  neg_mean_absolute_error: (test=-6703.877) neg_mean_squared_error: (test=-81836742.414) neg_root_mean_squared_error: (test=-9046.366) r2: (test=0.519) total time= 1.6min
+[CV 8/10; 1/1] START ...........................................................
+/usr/local/lib/python3.10/dist-packages/sklearn/neural_network/_multilayer_perceptron.py:686: ConvergenceWarning: Stochastic Optimizer: Maximum iterations (1000) reached and the optimization hasn't converged yet.
+  warnings.warn(
+[CV 8/10; 1/1] END  neg_mean_absolute_error: (test=-6927.541) neg_mean_squared_error: (test=-98864360.031) neg_root_mean_squared_error: (test=-9943.056) r2: (test=0.492) total time= 1.6min
+[CV 9/10; 1/1] START ...........................................................
+/usr/local/lib/python3.10/dist-packages/sklearn/neural_network/_multilayer_perceptron.py:686: ConvergenceWarning: Stochastic Optimizer: Maximum iterations (1000) reached and the optimization hasn't converged yet.
+  warnings.warn(
+[CV 9/10; 1/1] END  neg_mean_absolute_error: (test=-6501.091) neg_mean_squared_error: (test=-83037635.701) neg_root_mean_squared_error: (test=-9112.499) r2: (test=0.517) total time= 1.6min
+[CV 10/10; 1/1] START ..........................................................
+/usr/local/lib/python3.10/dist-packages/sklearn/neural_network/_multilayer_perceptron.py:686: ConvergenceWarning: Stochastic Optimizer: Maximum iterations (1000) reached and the optimization hasn't converged yet.
+  warnings.warn(
+[CV 10/10; 1/1] END  neg_mean_absolute_error: (test=-7359.023) neg_mean_squared_error: (test=-108857710.027) neg_root_mean_squared_error: (test=-10433.490) r2: (test=0.434) total time= 1.6min
+Finalizado em 30/04/2024 14:26:44
+Tempo gasto no modelo: 0:17:46.233339
+Resultado:  (VotingRegressor(estimators=[('Modelo_1',
+                             GradientBoostingRegressor(max_depth=2,
+                                                       min_samples_leaf=2,
+                                                       min_samples_split=55,
+                                                       n_estimators=2000)),
+                            ('Modelo_2', BaggingRegressor(n_estimators=600)),
+                            ('Modelo_3', RandomForestRegressor()),
+                            ('Modelo_4',
+                             MLPRegressor(batch_size=256, early_stopping=True,
+                                          max_iter=1000)),
+                            ('Modelo_5', ExtraTreesRegressor())]), '{}', 86944338.1229, '86944338.1229', '9308.3293', '6667.5721', '0.5107')
