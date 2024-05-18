@@ -12,7 +12,7 @@ st.set_page_config(
 )
 
 ##### PREPARAÇÃO ###########
-if os.name == 'nt': # Windos
+if os.name == 'nt': # Windows
     #Para rodar na máquina local, colocamos assim, senão não funciona
     logo_puc_minas = r'figuras/puc_minas.jpg'
     arquivo_dataset = r'datasets/brasileirao_serie_a_preparada_final_op2.csv' 
@@ -271,7 +271,7 @@ with aba_previsao_arquivo:
         
             # Lê em um DF
             if arquivo.type == 'text/csv':
-                dados = pd.read_csv(arquivo, sep =';', encoding='latin')             
+                dados = pd.read_csv(arquivo, sep =',', encoding='utf-8')             
             else: # excel
                 dados = pd.read_excel(arquivo)
 
@@ -365,8 +365,9 @@ with aba_previsao_arquivo:
             dados['points_visit_last_5'] = dados['points_visit_last_5'].apply(int)
             dados['colocacao_mandante_antes'] = dados['colocacao_mandante_antes'].apply(int)
             dados['colocacao_visitante_antes'] = dados['colocacao_visitante_antes'].apply(int)
-                
-            dados['publico'] = dados['publico'].apply(formata_numero)
+            if 'publico_real' in dados.columns: # Coluna opcional   
+                dados['publico_real'] = dados['publico_real'].apply(formata_numero)
+            
             dados['PÚBLICO ESTIMADO'] = dados['PÚBLICO ESTIMADO'].apply(formata_numero)
 
             dados = dados.rename(columns={'rodada': 'Rodada', 'data': 'Data', 'time_mandante': 'Time Mandante', 'time_visitante': 'Time Visitante',
@@ -374,7 +375,7 @@ with aba_previsao_arquivo:
                                 'points_visit_last_5': 'Pontos do Visitante nas Últimas 5 Rodadas',
                                 'colocacao_mandante_antes': 'Classificação do Mandante na Tabela',
                                 'colocacao_visitante_antes': 'Classificação do Visitante na Tabela',
-                                'publico': 'Público Real' })
+                                'publico_real': 'Público Real' })
 
 
             #dados.index = [''] * len(dados)
@@ -401,21 +402,21 @@ with aba_sobre:
         col1.image(logo_puc_minas, width=200)
         col2.markdown('#### PÓS GRADUAÇÃO EM CIÊNCIA DE DADOS E BIG DATA')
         col2.markdown('#### TRABALHO DE CONCLUSÃO DE CURSO')    
-        col2.markdown('#### MAIO/2024')
+        col2.markdown('#### JUNHO/2024')
         
         st.write('')
         st.write('')
         
-        st.subheader('Esse aplicativo é parte do trabalho: ' +
+        st.subheader('Esta aplicação é parte do trabalho: ' +
                      '"Um Modelo de Aprendizado de Máquina Supervisionado para Previsão ' + 
                      'de Quantidade de Público nos Jogos do Campeonato Brasileiro de Futebol"')    
         
-        st.subheader('Etapa 03: Implantação do Modelo em Produção')
+        st.subheader('Etapa de Implantação do Modelo em Produção')
 
         st.write('')
         st.write('')        
         
-        st.markdown('#### Salomão Fernandes de Freitas Júnior ' +
+        st.markdown('#### Autor: Salomão Fernandes de Freitas Júnior ' +
                      '(salomaofreitasjr@gmail.com)')
 
         st.markdown('#### Repositório do Projeto:  https://github.com/salomaofreitasjr/TCC_PUC_MINAS_POS_CIENCIA_DE_DADOS_2023')
