@@ -87,7 +87,7 @@ def formata_data(data):
 
 # Formatação de exibição de número
 def formata_numero(num):
-    return '{:,.0f}'.format(num).replace(',','.')
+    return '{:,.0f}'.format(abs(num)).replace(',','.')
 
 
 ###### INÍCIO DO APLICATIVO (INTERFACE) ##########
