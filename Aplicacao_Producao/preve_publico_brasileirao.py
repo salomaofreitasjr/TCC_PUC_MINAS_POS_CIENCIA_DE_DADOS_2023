@@ -348,12 +348,16 @@ with aba_previsao_arquivo:
             modelo = pickle.load(open(arquivo_modelo, 'rb'))
                     
             # Faz a predição e inclui como uma coluna do DF referente ao arquivo de entrada, formatando a saída com . separador de milhar e sem casas decimais
-            #publico = modelo.predict(valores_x)
             dados['PÚBLICO ESTIMADO'] = modelo.predict(valores_x)
                     
 
             #st.divider()
-            #st.write(valores_x.head(10)) # DF com os valores preparados para aplicação no modelo de ML
+            #para visualizarmos os dados transformados, e para levar o arquivo para os testes do apêndice do trabalho
+            #nesse caso, eu descomento o código e salvo na tela da aplicação  csv
+            #valores_x_y = valores_x.copy()
+            #valores_x_y['publico'] = dados['publico_real']
+            ##st.write(valores_x_y) # DF com os valores preparados para aplicação no modelo de ML
+            #st.dataframe(valores_x_y, hide_index=True) # assim para não mostrar o índice
 
             st.write('')
             st.markdown( '### Veja abaixo a quantidade de público prevista para cada jogo no arquivo indicado'  )
