@@ -96,7 +96,7 @@ def formata_numero(num):
 
 col1, col2 = st.columns([0.5,9.5])
 col1.image(logo_puc_minas, width=80)
-col2.header('Aplicativo de Previsão Público em Jogos do Campeonato Brasileiro de Futebol ⚽')
+col2.header('Previsão de Público em Jogos do Campeonato Brasileiro de Futebol ⚽')
 
 aba_previsao_individual, aba_previsao_arquivo, aba_sobre = st.tabs(['Previsão de Público - Jogo Individual',
                                                                     'Previsão de Público - Jogos em lote', 
